@@ -8,3 +8,5 @@
 
  When opening in visual studio, switch to x64.
  After building, drag the modules into the built engine, and make sure you enable them in the modules folder txt thing. They should be ready for use after you compile
+
+ Also included: fallback copy of the current godot 4.0 docs (4.7.2023.)
