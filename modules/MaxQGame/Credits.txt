@@ -1,0 +1,31 @@
+https://github.com/bitsydoge/godot-module-singleton-example
+- a bit (a lot) outdated, but it helped a bunch
+- by bitsydoge
+
+THE GODOT ENGINE & DOCS
+- I mean come on, fuck yeah GODOUHHHHHH!
+
+MY NERVES
+- RIP lol, fuck you "Vector"
+
+Air Defense (and Offense) Command
+- I stole Anacrea from them
+- Cope
+- Lovely games btw, I think I remember it becoming ad-infested tho
+
+Command and Conquer 3 (All 4 of them) + Generals ZH
+- For sparking my love for RTS games
+
+Command and Conquer 4
+- Because even my biggest fuckup won't be anywhere close to this, hopefully
+
+FTL: Faster Than Light
+- The inspiration should be clear
+
+Rain World
+- For their talk on daddy long legs, the tech details inspired me to make something similar
+
+https://www.youtube.com/watch?v=ob3VwY4JyzE (Reinventing Minecraft world generation by Henrik Kniberg)
+- For their insight into random world generation and perlin noise
+
+And all my friends who listen to me while I rant about how shitty this code is
