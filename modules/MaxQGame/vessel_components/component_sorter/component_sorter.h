@@ -3,6 +3,8 @@
 #pragma once
 
 #include "scene/2d/node_2d.h"
+#include "scene/2d/physics_body_2d.h"
+
 #include "../components/component.h"
 
 class Component; //<---- CIRCULAR DEPENDENCY
@@ -12,10 +14,9 @@ class ComponentSorter : public Node2D {
 
 protected:
 	static void _bind_methods();
-	void _notification(int p_what);
 
 public:
-	Vector<Vector<Component *> > component_list;
+	Vector<Vector<Component *>> component_list;
 
 	void add_component(Component *compptr);
 	void remove_component(Component *compptr);

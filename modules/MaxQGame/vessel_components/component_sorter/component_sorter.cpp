@@ -62,10 +62,18 @@ void ComponentSorter::remove_component(Component *compptr) {
 }
 
 const Vector<Component *> *ComponentSorter::get_component_vec(int comp_id) {
+	if (comp_id > component_list.size() - 1) {
+		component_list.resize(comp_id + 1);
+	}
+
 	return &(component_list.ptr()[comp_id]);// Warn my ass, this bish should never get deleted without whoever's accessing it getting deleted
 }
 
 TypedArray<Node> ComponentSorter::get_component_list(int comp_id) {
+	if (comp_id > component_list.size() - 1) {
+		component_list.resize(comp_id + 1);
+	}
+
 	TypedArray<Node> components;
 	const Vector<Component *> *component_vec = get_component_vec(comp_id);
 
@@ -83,6 +91,8 @@ void ComponentSorter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_component_list", "component_id"), &ComponentSorter::get_component_list);
 }
 
+// I will leave this here as a reminder of my suffering (3)
+/*
 void ComponentSorter::_notification(int p_what) {
 
 	if (Engine::get_singleton()->is_editor_hint()) {
@@ -96,9 +106,6 @@ void ComponentSorter::_notification(int p_what) {
 
 		case NOTIFICATION_PROCESS:
 
-			// I will leave this here as a reminder of my suffering (3)
-
-			/*
 			int length = component_list.size();
 			print_line("Size:");
 			print_line(String::num_int64(length));
@@ -107,8 +114,9 @@ void ComponentSorter::_notification(int p_what) {
 			for (size_t i = 0; i < length; i++) {
 				print_line(String::num_int64(get_component_vec(i)->size()));
 			}
-			print_line("Sizes End");*/
+			print_line("Sizes End");
 
 			break;
 	}
 }
+*/

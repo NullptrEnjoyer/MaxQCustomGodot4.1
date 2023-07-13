@@ -40,10 +40,12 @@ void Component::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_tag", "new_tag"), &Component::set_tag);
 	ClassDB::bind_method(D_METHOD("get_tag"), &Component::get_tag);
 	ClassDB::add_property("Component", PropertyInfo(Variant::STRING, "tag"), "set_tag", "get_tag");
-	/*Example:
+	/*
+	Example:
 	ClassDB::bind_method(D_METHOD("add", "value"), &Summator::add);// <- when it needs values
 	ClassDB::bind_method(D_METHOD("reset"), &Summator::reset);// <- when it doesn't
-	ClassDB::bind_method(D_METHOD("get_total"), &Summator::get_total);*/
+	ClassDB::bind_method(D_METHOD("get_total"), &Summator::get_total);
+	*/
 }
 
 void Component::_notification(int p_what) {
@@ -54,7 +56,10 @@ void Component::_notification(int p_what) {
 
 	switch (p_what) {
 		case NOTIFICATION_PARENTED: //first
-			get_id_from_manager();
+			if (!id_get) {
+				get_id_from_manager();
+				id_get = true;
+			}
 			try_add_to_sorter();
 			break;
 

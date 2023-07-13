@@ -12,10 +12,12 @@
 
 #include "vessel_components/component_sorter/component_sorter.h"
 #include "vessel_components/components/component.h"
+#include "vessel_components/components/subtypes/thruster.h"
 
 /* controllers */
 
 #include "vessel_components/components/controllers/controller.h"
+#include "vessel_components/components/controllers/subtypes/thruster_movement_controller.h"
 
 static ComponentIDManager *ComponentIDSingletonPtr = NULL;
 
@@ -32,13 +34,15 @@ void initialize_MaxQGame_module(ModuleInitializationLevel p_level) {
 
 	// Vessel components and such ahead
 
-	/* components */
-
-	ClassDB::register_class<Component>();
 	ClassDB::register_class<ComponentSorter>();
+
+	/* components */
+	ClassDB::register_class<Component>();
+	ClassDB::register_class<Thruster>();
 
 	/* controllers */
 	ClassDB::register_class<Controller>();
+	ClassDB::register_class<ThrusterMovementController>();
 }
 
 void uninitialize_MaxQGame_module(ModuleInitializationLevel p_level) {

@@ -19,7 +19,7 @@ protected:
 	void try_remove_from_sorter();
 
 	static void _bind_methods();
-	void _notification(int p_what);
+	virtual void _notification(int p_what);
 
 	String tag = "";
 	ComponentSorter *curr_sorter = nullptr;
@@ -31,5 +31,6 @@ public:
 	String get_tag();
 	void set_tag(String new_tag);
 	int get_id();
+	bool id_get = false;
 
 };
