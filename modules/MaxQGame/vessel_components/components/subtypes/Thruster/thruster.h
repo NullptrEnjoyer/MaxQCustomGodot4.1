@@ -3,16 +3,17 @@
 #pragma once
 
 #include "scene\2d\node_2d.h"
-#include "scene/2d/physics_body_2d.h"
+#include "scene\2d\sprite_2d.h"
 
-#include "../component.h"
+#include "../../../../custom_physics/custom_physics_body_2d.h"
+#include "../../component.h"
 
 
 class Thruster : public Component {
 	GDCLASS(Thruster, Component);
 
 protected:
-	void _notification(int p_what) override;
+	void _notification(int p_what);
 	static void _bind_methods();
 
 	void apply_thrust();
@@ -21,7 +22,10 @@ protected:
 	void null_physics_body();
 
 	static String physicsBodyTypeID;
-	RigidBody2D *releveant_body = nullptr;
+	MaxQRigidBody2D *releveant_body = nullptr;
+	Sprite2D *sprite = nullptr;
+
+	void find_sprite();
 
 	Vector2 precomp_force = { 0, 0 };
 	real_t precomp_torque = 0;
@@ -34,11 +38,9 @@ public:
 	int power = 0;
 	bool ready = false; // Have to massively increase power the first time we're parented because of how I wrote this (I am not sorry)
 
-	// TODO: expose all this to gdscript
-
 	bool main_engine = false;
 
-	bool autodetermine_direction = true;
+	bool autodetermine_direction = true; // TODO
 
 	bool move_front = false;
 	bool move_back = false;
@@ -58,9 +60,20 @@ public:
 		return power;
 	};
 
+	void set_autodetermine_dir(bool b) {
+		autodetermine_direction = b;
+	};
+	int get_autodetermine_dir() {
+		return autodetermine_direction;
+	};
+
 	void set_main_engine(bool b){
 		main_engine = b;
 	};
+	bool get_main_engine() {
+		return main_engine;
+	};
+
 	void set_move_front(bool b) {
 		move_front = b;
 	};
@@ -80,9 +93,6 @@ public:
 		rotate_right = b;
 	};
 
-	bool get_main_engine() {
-		return main_engine;
-	};
 	bool get_move_front() {
 		return move_front;
 	};

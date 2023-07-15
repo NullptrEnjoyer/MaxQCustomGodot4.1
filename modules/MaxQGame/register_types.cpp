@@ -8,16 +8,20 @@
 
 #include "vessel_components/component_ID_singleton/component_ID_singleton.h"
 
+/* physics */
+
+#include "custom_physics/custom_physics_body_2d.h"
+
 /* components */
 
 #include "vessel_components/component_sorter/component_sorter.h"
 #include "vessel_components/components/component.h"
-#include "vessel_components/components/subtypes/thruster.h"
+#include "vessel_components/components/subtypes/thruster/thruster.h"
 
 /* controllers */
 
 #include "vessel_components/components/controllers/controller.h"
-#include "vessel_components/components/controllers/subtypes/thruster_movement_controller.h"
+#include "vessel_components/components/controllers/subtypes/thruster_movement_controller/thruster_movement_controller.h"
 
 static ComponentIDManager *ComponentIDSingletonPtr = NULL;
 
@@ -31,6 +35,10 @@ void initialize_MaxQGame_module(ModuleInitializationLevel p_level) {
 	ClassDB::register_class<ComponentIDManager>();
 	ComponentIDSingletonPtr = memnew(ComponentIDManager);
 	Engine::get_singleton()->add_singleton(Engine::Singleton("ComponentIDManager", ComponentIDManager::get_singleton()));
+
+	/* physics */
+
+	ClassDB::register_class<MaxQRigidBody2D>();
 
 	// Vessel components and such ahead
 

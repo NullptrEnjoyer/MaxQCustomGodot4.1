@@ -14,8 +14,6 @@ ComponentIDManager *ComponentIDManager::get_singleton() {
 
 int ComponentIDManager::fetch_id(String name) {
 
-	print_line(name);
-
 	int length = id_list.size();
 
 	int from = 0;

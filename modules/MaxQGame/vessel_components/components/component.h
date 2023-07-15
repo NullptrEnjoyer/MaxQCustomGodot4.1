@@ -19,7 +19,7 @@ protected:
 	void try_remove_from_sorter();
 
 	static void _bind_methods();
-	virtual void _notification(int p_what);
+	void _notification(int p_what);
 
 	String tag = "";
 	ComponentSorter *curr_sorter = nullptr;

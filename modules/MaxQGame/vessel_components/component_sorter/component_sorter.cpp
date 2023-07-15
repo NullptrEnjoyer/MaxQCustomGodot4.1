@@ -35,7 +35,7 @@ void ComponentSorter::remove_component(Component *compptr) {
 	int id = compptr->get_id();
 
 	const Vector<Component *> *constvec = &component_list.ptr()[id];
-	Vector<Component *> *vec = reinterpret_cast<Vector<Component *> *>((uintptr_t)constvec); // GET FUCKED YOU BASTARD
+	Vector<Component *> *vec = reinterpret_cast<Vector<Component *> *>((uintptr_t)constvec);
 
 	vec->erase(compptr);
 

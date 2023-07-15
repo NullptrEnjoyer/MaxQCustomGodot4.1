@@ -37,6 +37,7 @@ void Component::try_remove_from_sorter() {
 void Component::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_id"), &Component::get_id);
 
+	ADD_GROUP("Tag", "");
 	ClassDB::bind_method(D_METHOD("set_tag", "new_tag"), &Component::set_tag);
 	ClassDB::bind_method(D_METHOD("get_tag"), &Component::get_tag);
 	ClassDB::add_property("Component", PropertyInfo(Variant::STRING, "tag"), "set_tag", "get_tag");
@@ -67,7 +68,6 @@ void Component::_notification(int p_what) {
 			break;
 
 		case NOTIFICATION_READY://third
-			set_process(true);
 			break;
 
 		case NOTIFICATION_PROCESS:
@@ -93,8 +93,8 @@ String Component::get_tag() {
 }
 
 void Component::set_tag(String new_tag) {
-	tag = new_tag;
 	try_remove_from_sorter();
+	tag = new_tag;
 	get_id_from_manager();
 	try_add_to_sorter();
 }
