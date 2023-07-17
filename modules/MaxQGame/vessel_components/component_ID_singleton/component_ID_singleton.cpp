@@ -55,8 +55,8 @@ int ComponentIDManager::fetch_id_mutex(String name) {
 	int to = length - 1;
 	int midpoint = 0;
 
-	mutex.lock();
-	// IF YOU ARE ADDING ADDITIONAL RETURNS, ALWAYS UNLOCK OR YOU WILL CAUSE A DEADLOCK
+	mutex.lock(); // We failed the lock attempt, this lock will make us wait until we are actually able to lock it
+	// IF YOU ARE ADDING ADDITIONAL RETURNS, ALWAYS UNLOCK OR YOU WILL CAUSE A DEADLOCK AND EVERYONE WILL HATE YOU FOREVER
 
 	// same thing again
 	while (from <= to) {

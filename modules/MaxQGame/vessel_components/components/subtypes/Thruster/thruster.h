@@ -35,7 +35,7 @@ public:
 	void autodetermine_dir();
 	void precompute_forces();
 
-	int power = 0;
+	real_t power = 0;
 	bool ready = false; // Have to massively increase power the first time we're parented because of how I wrote this (I am not sorry)
 
 	bool main_engine = false;
@@ -53,10 +53,10 @@ public:
 
 	// Setters and getters for the above, needed for exposing variables.
 
-	void set_power(int i) {
+	void set_power(real_t i) {
 		power = i;
 	};
-	int get_power() {
+	real_t get_power() {
 		return power;
 	};
 

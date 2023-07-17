@@ -134,7 +134,7 @@ void Thruster::_bind_methods() {
 	ADD_GROUP("Physics", "");
 	ClassDB::bind_method(D_METHOD("set_power", "power"), &Thruster::set_power);
 	ClassDB::bind_method(D_METHOD("get_power"), &Thruster::get_power);
-	ClassDB::add_property("Thruster", PropertyInfo(Variant::INT, "power"), "set_power", "get_power");
+	ClassDB::add_property("Thruster", PropertyInfo(Variant::FLOAT, "power"), "set_power", "get_power");
 
 	ADD_GROUP("Logic", "");
 	ClassDB::bind_method(D_METHOD("set_main_engine", "bool"), &Thruster::set_main_engine);

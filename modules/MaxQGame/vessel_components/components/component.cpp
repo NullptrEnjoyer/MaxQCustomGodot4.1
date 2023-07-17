@@ -56,28 +56,36 @@ void Component::_notification(int p_what) {
 	}
 
 	switch (p_what) {
-		case NOTIFICATION_PARENTED: //first
-			if (!id_get) {
-				get_id_from_manager();
-				id_get = true;
-			}
-			try_add_to_sorter();
+		// Handled by NOTIFICATION_NODE_RECACHE_REQUESTED
+		/* case NOTIFICATION_PARENTED: //first
 			break;
 
 		case NOTIFICATION_ENTER_TREE: //second
-			break;
+			break;*/
 
 		case NOTIFICATION_READY://third
+			get_id_from_manager();
+			try_add_to_sorter();
 			break;
 
-		case NOTIFICATION_PROCESS:
+		/* case NOTIFICATION_PROCESS:
 			break;
 
 		case NOTIFICATION_PHYSICS_PROCESS:
+			break;*/
+
+		case NOTIFICATION_NODE_RECACHE_REQUESTED:
+			if (is_ready()) {
+				try_remove_from_sorter();
+				try_add_to_sorter();
+			}
 			break;
 
+		// Handled by NOTIFICATION_NODE_RECACHE_REQUESTED
+		/* case NOTIFICATION_UNPARENTED:
+			break;*/
+
 		case NOTIFICATION_PREDELETE:
-		case NOTIFICATION_UNPARENTED:
 		case NOTIFICATION_EXIT_TREE:
 			try_remove_from_sorter();
 			break;
