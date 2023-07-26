@@ -2,7 +2,7 @@
 
 #include "thruster.h"
 
-String Thruster::physicsBodyTypeID = typeid(MaxQRigidBody2D).raw_name();
+String Thruster::physicsBodyTypeID = typeid(PhysicsEntity2D).raw_name();
 
 Thruster::Thruster() {
 	tag = "bgThruster";
@@ -20,10 +20,9 @@ void Thruster::find_physics_body() {
 			continue;
 		}
 
-		releveant_body = static_cast<MaxQRigidBody2D *>(parent);
+		releveant_body = static_cast<PhysicsEntity2D *>(parent);
 
 		precompute_forces();
-		autodetermine_dir();
 		return;
 	}
 }
@@ -60,14 +59,14 @@ void Thruster::apply_thrust() {
 
 void Thruster::autodetermine_dir() {
 	if (autodetermine_direction) {
-		// Make sure we OVERRIDE these
+		// Make sure we override these
 		move_front = false;
 		move_back = false;
 		move_left = false;
 		move_right = false;
 
 		Vector2 vector = { 0, 1 }; // Pointing "down"
-		vector = vector.rotated(get_rotation());
+		vector = vector.rotated(get_global_rotation() - releveant_body->get_global_rotation());
 
 		if (abs(vector.x) > abs(vector.y)) {
 			if (vector.x < 0) {
@@ -86,14 +85,20 @@ void Thruster::autodetermine_dir() {
 }
 
 void Thruster::precompute_forces() {
-	precomp_force.x = sin(get_rotation()) * power;
-	precomp_force.y = -cos(get_rotation()) * power;
+	if (releveant_body == nullptr) {
+		return;
+	}
+
+	precomp_force.x = sin(get_global_rotation() - releveant_body->get_global_rotation()) * power_real;
+	precomp_force.y = -cos(get_global_rotation() - releveant_body->get_global_rotation()) * power_real;
 
 	Vector2 offset = { 0, 0 };
-	offset.x = get_position().x - releveant_body->get_center_of_mass().x;
-	offset.y = get_position().y - releveant_body->get_center_of_mass().y;
+	offset.x = get_global_position().x - releveant_body->get_global_position().x;
+	offset.y = releveant_body->get_global_position().y - get_global_position().y; // Y is flipped, so to get accurate results we have to flip it back
 
-	precomp_torque = -(offset.x * precomp_force.y + offset.y * precomp_force.x);
+	precomp_torque = (precomp_force.y * offset.x + precomp_force.x * offset.y);
+
+	autodetermine_dir();
 }
 
 void Thruster::_notification(int p_what) {
@@ -104,14 +109,6 @@ void Thruster::_notification(int p_what) {
 	}
 
 	switch (p_what) {
-		case NOTIFICATION_PARENTED: //first
-			if (!ready) {
-				ready = true;
-				power *= 20000000; // UNNNNNNNNNNNNNLLLIMITEEEEEEEDDDDDDDDDDDDDD POOOOOOOOOOOOOOOOWWWERRRRRRRRRRRRRRRRRRRRRRRR
-				//We're dealing with large weight and such, and it's not very user-readable if we define power in the millions, so this makes sense
-			}
-			find_physics_body();
-			break;
 
 		case NOTIFICATION_READY: //third
 			set_physics_process(true);
@@ -122,8 +119,18 @@ void Thruster::_notification(int p_what) {
 			apply_thrust();
 			break;
 
+		case 22000: // NOTIFICATION_POLYPHYSICS_RECOMPUTE
+			precompute_forces();
+			break;
+
+		case NOTIFICATION_NODE_RECACHE_REQUESTED:
+			if (is_ready()) {
+				null_physics_body();
+				find_physics_body();
+			}
+			break;
+
 		case NOTIFICATION_PREDELETE:
-		case NOTIFICATION_UNPARENTED:
 		case NOTIFICATION_EXIT_TREE:
 			null_physics_body();
 			break;
@@ -134,7 +141,7 @@ void Thruster::_bind_methods() {
 	ADD_GROUP("Physics", "");
 	ClassDB::bind_method(D_METHOD("set_power", "power"), &Thruster::set_power);
 	ClassDB::bind_method(D_METHOD("get_power"), &Thruster::get_power);
-	ClassDB::add_property("Thruster", PropertyInfo(Variant::FLOAT, "power"), "set_power", "get_power");
+	ClassDB::add_property("Thruster", PropertyInfo(Variant::FLOAT, "power_(kN)"), "set_power", "get_power");
 
 	ADD_GROUP("Logic", "");
 	ClassDB::bind_method(D_METHOD("set_main_engine", "bool"), &Thruster::set_main_engine);

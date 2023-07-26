@@ -35,6 +35,7 @@ void Component::try_remove_from_sorter() {
 }
 
 void Component::_bind_methods() {
+
 	ClassDB::bind_method(D_METHOD("get_id"), &Component::get_id);
 
 	ADD_GROUP("Tag", "");

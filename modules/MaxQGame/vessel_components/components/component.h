@@ -31,5 +31,4 @@ public:
 	String get_tag();
 	void set_tag(String new_tag);
 	int get_id();
-
 };

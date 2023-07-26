@@ -5,7 +5,9 @@
 #include "scene\2d\node_2d.h"
 #include "scene\2d\sprite_2d.h"
 
-#include "../../../../custom_physics/custom_physics_body_2d.h"
+//#include "../../../../custom_physics/custom_physics_body_2d.h"
+
+#include "../../../../polygon_physics/physics_entity/physics_entity_2d.h"
 #include "../../component.h"
 
 
@@ -22,7 +24,7 @@ protected:
 	void null_physics_body();
 
 	static String physicsBodyTypeID;
-	MaxQRigidBody2D *releveant_body = nullptr;
+	PhysicsEntity2D *releveant_body = nullptr;
 	Sprite2D *sprite = nullptr;
 
 	void find_sprite();
@@ -35,8 +37,8 @@ public:
 	void autodetermine_dir();
 	void precompute_forces();
 
-	real_t power = 0;
-	bool ready = false; // Have to massively increase power the first time we're parented because of how I wrote this (I am not sorry)
+	real_t power_kn = 0.0;
+	real_t power_real = 0.0;
 
 	bool main_engine = false;
 
@@ -54,10 +56,11 @@ public:
 	// Setters and getters for the above, needed for exposing variables.
 
 	void set_power(real_t i) {
-		power = i;
+		power_kn = i;
+		power_real = i * 1000;
 	};
 	real_t get_power() {
-		return power;
+		return power_kn;
 	};
 
 	void set_autodetermine_dir(bool b) {

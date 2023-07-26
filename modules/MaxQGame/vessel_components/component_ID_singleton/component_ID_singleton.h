@@ -1,4 +1,4 @@
-/* component.h */
+/* component_ID_singleton.h */
 
 #pragma once
 

@@ -1,4 +1,4 @@
-/* component.cpp */
+/* component_ID_singleton.cpp */
 
 #include "component_ID_singleton.h"
 

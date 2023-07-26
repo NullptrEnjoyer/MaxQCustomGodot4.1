@@ -1,4 +1,4 @@
-https://github.com/bitsydoge/godot-module-singleton-example
+https://github.com/bitsydoge/godot-module-singleton-example (bitsydoge)
 - a bit (a lot) outdated, but it helped a bunch
 - by bitsydoge
 
@@ -9,11 +9,11 @@ MY NERVES
 - RIP lol, fuck you "Vector"
 
 Air Defense (and Offense) Command
-- I stole Anacrea from them
-- Cope
-- Lovely games btw, I think I remember it becoming ad-infested tho
+- I ""borrowed" Anacrea from them
+- Cope lol
+- Great games btw
 
-Command and Conquer 3 (All 4 of them) + Generals & ZH
+Command and Conquer 3 (All of them) + Generals & Generals ZH
 - For sparking my love for RTS games
 
 Command and Conquer 4
@@ -27,5 +27,21 @@ Rain World
 
 https://www.youtube.com/watch?v=ob3VwY4JyzE (Reinventing Minecraft world generation by Henrik Kniberg)
 - For their insight into random world generation and perlin noise
+
+https://stackoverflow.com/
+- https://stackoverflow.com/questions/5271583/center-of-gravity-of-a-polygon (see link to wayback machine)
+
+The wayback machine
+- https://web.archive.org/web/20120229233701/http://paulbourke.net/geometry/polyarea/
+
+My college maths professor
+- For teaching me about vector maths
+- And being pretty cool
+
+https://softmath.com/ (Algebrator)
+- For helping me quickly solve shit without worrying wether I misplaced a "-" again or not
+
+https://www.khanacademy.org/science/physics/linear-momentum/center-of-mass/v/center-of-mass-equation
+- For giving physics lessons out for free
 
 And all my friends who listen to me while I rant about how shitty this code is

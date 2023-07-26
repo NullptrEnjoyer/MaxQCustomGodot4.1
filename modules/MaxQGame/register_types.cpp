@@ -12,6 +12,14 @@
 
 #include "custom_physics/custom_physics_body_2d.h"
 
+/* polygon physics */
+
+#include "polygon_physics/poly_physics_2d.h"
+#include "polygon_physics/physics_entity/physics_entity_2d.h"
+#include "polygon_physics/threaded_solver/threaded_physics_solver_2d.h"
+#include "polygon_physics/body_segment/body_segment_2d.h"
+#include "polygon_physics/line_intersect_solver/line_intersect_solver_2d.h"
+
 /* components */
 
 #include "vessel_components/component_sorter/component_sorter.h"
@@ -40,16 +48,24 @@ void initialize_MaxQGame_module(ModuleInitializationLevel p_level) {
 
 	ClassDB::register_class<MaxQRigidBody2D>();
 
+	/* polygon physics */
+
+	GDREGISTER_VIRTUAL_CLASS(PolygonPhysicsSystem2D);
+	GDREGISTER_CLASS(PhysicsEntity2D);
+	GDREGISTER_CLASS(ThreadedPhysicsSolver2D);
+	GDREGISTER_CLASS(PhysicsSegment2D);
+	GDREGISTER_CLASS(LineIntersectSolver2D);
+
 	// Vessel components and such ahead
 
 	ClassDB::register_class<ComponentSorter>();
 
 	/* components */
-	ClassDB::register_class<Component>();
+	GDREGISTER_VIRTUAL_CLASS(Component);
 	ClassDB::register_class<Thruster>();
 
 	/* controllers */
-	ClassDB::register_class<Controller>();
+	GDREGISTER_VIRTUAL_CLASS(Controller);
 	ClassDB::register_class<ThrusterMovementController>();
 }
 
