@@ -4,8 +4,8 @@
 
 #include "../poly_physics_2d.h"
 
-class LineIntersectSolver2D : public PolygonPhysicsSystem2D {
-	GDCLASS(LineIntersectSolver2D, PolygonPhysicsSystem2D);
+class LineIntersectSensor2D : public PolygonPhysicsSystem2D {
+	GDCLASS(LineIntersectSensor2D, PolygonPhysicsSystem2D);
 
 protected:
 	Vector2 from = { 0, 0 };

@@ -3,10 +3,10 @@
 #pragma once
 
 #include "../poly_physics_2d.h"
-#include "../threaded_solver/threaded_physics_solver_2d.h"
+#include "../independent_solver/independent_physics_solver_2d.h"
 #include "../body_segment/body_segment_2d.h"
 
-class ThreadedPhysicsSolver2D; //<---- CIRCULAR DEPENDENCY
+class IndependentPhysicsSolver2D; //<---- CIRCULAR DEPENDENCY
 class PhysicsSegment2D; //<---- CIRCULAR DEPENDENCY
 
 class PhysicsEntity2D : public PolygonPhysicsSystem2D {
@@ -15,17 +15,14 @@ class PhysicsEntity2D : public PolygonPhysicsSystem2D {
 protected:
 	static String PhysicsSolverTypeID;
 
-	ThreadedPhysicsSolver2D *solver = nullptr;
-	int ID = 0;
+	IndependentPhysicsSolver2D *solver = nullptr;
+	int ID = 0; // Our index in the current solver. Check if solver is nullptr before using
+	
+	real_t total_toi = 0; // Time of impact counter used in continous collision detection
+	Vector<real_t> connected_collision_pair_id_vec;
 
 	real_t total_mass = 0;
 	real_t total_inertia = 0;
-
-	Vector2 relative_pos = { 0, 0 }; // Min x and y relative to centre of mass
-	Vector2 size = { 0, 0 }; // Max x and y (relative to Min x and y)
-
-	Vector2 safe_relative_pos = { 0, 0 }; // Min * 2
-	Vector2 safe_size = { 0, 0 }; // Size * 2
 
 	Vector2 queued_force = { 0, 0 };
 	real_t queued_torque = 0.0;
@@ -35,6 +32,11 @@ protected:
 
 	Vector<PhysicsSegment2D *> physics_segments;
 	bool calculate_data_from_segments_next_step = false;
+	
+	Rect2 local_bounding_box = { 0, 0, 0, 0 };
+	Rect2 real_bounding_box = { 0, 0, 0, 0 };
+	Rect2 future_bounding_box = { 0, 0, 0, 0 };
+	Rect2 collision_bounding_box = { 0, 0, 0, 0 }; // Basically real_bounding_box + future_bounding_box
 
 	void _notification(int p_what);
 
@@ -49,15 +51,27 @@ public:
 	void queue_central_force(Vector2 force);
 	void queue_torque(real_t torque);
 
-	void apply_queued_forces();
-	void check_collision(PhysicsEntity2D *other){};
-	void step();
-
+	Vector<PhysicsSegment2D *> get_segments();
 	int add_segment(PhysicsSegment2D *physics_segment);
 	void remove_segment_at(int id);
-	void queue_calculate_data_from_segments();
+	void queue_calculate_data_from_segments(); // For performance, it's a hungry function
 	void calculate_data_from_segments();
 
-	void compute_raycasts(){};
+	void set_id(size_t index);
 
+	// Solver and collision resolution stuff
+	void solver_apply_queued_forces();
+	void solver_prepare_for_step();
+	// This function WILL NOT report a collision if it can already be found via our connected_collision_pair_index list
+	bool solver_check_collision_broadphase(PhysicsEntity2D *other);
+	void solver_step_for_toi(real_t toi);
+	void solver_step();
+
+	void clear_collision_data();
+	real_t get_total_toi();
+
+	void add_collision_pair(real_t pair_id);
+	bool check_if_collision_pair_exists(real_t other_body_id);
+	void remove_collision_pair(real_t pair_id);
+	void clear_collision_pair_vec();
 };

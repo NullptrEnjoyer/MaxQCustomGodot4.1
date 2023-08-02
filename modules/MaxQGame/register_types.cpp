@@ -16,9 +16,9 @@
 
 #include "polygon_physics/poly_physics_2d.h"
 #include "polygon_physics/physics_entity/physics_entity_2d.h"
-#include "polygon_physics/threaded_solver/threaded_physics_solver_2d.h"
+#include "polygon_physics/independent_solver/independent_physics_solver_2d.h"
 #include "polygon_physics/body_segment/body_segment_2d.h"
-#include "polygon_physics/line_intersect_solver/line_intersect_solver_2d.h"
+#include "polygon_physics/line_intersect_sensor/line_intersect_sensor_2d.h"
 
 /* components */
 
@@ -52,9 +52,9 @@ void initialize_MaxQGame_module(ModuleInitializationLevel p_level) {
 
 	GDREGISTER_VIRTUAL_CLASS(PolygonPhysicsSystem2D);
 	GDREGISTER_CLASS(PhysicsEntity2D);
-	GDREGISTER_CLASS(ThreadedPhysicsSolver2D);
+	GDREGISTER_CLASS(IndependentPhysicsSolver2D);
 	GDREGISTER_CLASS(PhysicsSegment2D);
-	GDREGISTER_CLASS(LineIntersectSolver2D);
+	GDREGISTER_CLASS(LineIntersectSensor2D);
 
 	// Vessel components and such ahead
 

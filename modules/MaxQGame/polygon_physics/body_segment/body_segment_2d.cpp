@@ -5,14 +5,19 @@
 String PhysicsSegment2D::PhysicsEntityTypeID = typeid(PhysicsEntity2D).raw_name();
 
 void PhysicsSegment2D::set_mass(real_t _mass) {
-	if (entity != nullptr) {
-		entity->calculate_data_from_segments();
+	if (_mass == 0) {
+		_mass = 1;
 	}
 	mass = _mass;
+	try_refresh_physics_entity();
 }
 
 real_t PhysicsSegment2D::get_mass() {
 	return mass;
+}
+
+real_t PhysicsSegment2D::get_area() {
+	return area;
 }
 
 Vector2 PhysicsSegment2D::get_center_of_mass() {
@@ -67,6 +72,12 @@ void PhysicsSegment2D::try_remove_from_physics_entity() {
 	}
 }
 
+void PhysicsSegment2D::try_refresh_physics_entity() {
+	if (entity != nullptr) {
+		entity->queue_calculate_data_from_segments();
+	}
+}
+
 // https://stackoverflow.com/questions/5271583/center-of-gravity-of-a-polygon
 // https://web.archive.org/web/20120229233701/http://paulbourke.net/geometry/polyarea/
 // fails in self-intersecting polygons
@@ -86,6 +97,12 @@ void PhysicsSegment2D::calculate_area() {
 		j = i + 1; // The next number
 		area += polygon_vec[i].x * polygon_vec[j].y;
 		area -= polygon_vec[j].x * polygon_vec[i].y;
+	}
+
+	if (area < 0) { // Whoops lol. I dunno if this breaks things, but I'd rather have it going the right way 'round
+		polygon_vec.reverse();
+		set_polygon(polygon_vec);
+		area *= -1;
 	}
 
 	area /= 2;
