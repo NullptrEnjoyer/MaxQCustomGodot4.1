@@ -10,6 +10,7 @@ class PhysicsEntity2D; //<---- CIRCULAR DEPENDENCY
 class PhysicsSegment2D; //<---- CIRCULAR DEPENDENCY?
 
 struct CollisionPair {
+	size_t ID = 0;
 	real_t initial_toi = 0;
 	real_t toi = 0;
 	// The indexes for the affected bodies within our entities vector
@@ -39,8 +40,8 @@ protected:
 public:
 
 	/// <returns>Position of insertion (needed for removal function).</returns>
-	void add_entity(PhysicsEntity2D *detector);
-	void remove_entity(int detector_id); // We will rely on recipients to remove themselves as needed
+	void add_entity(PhysicsEntity2D *entity);
+	void remove_entity(int entity_id); // We will rely on recipients to remove themselves as needed
 
 	/// <returns>the collision pair's ID</returns>
 	void add_collision_pair(size_t body1, size_t body2);

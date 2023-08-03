@@ -23,7 +23,7 @@ void PhysicsEntity2D::try_find_physics_controller() {
 
 void PhysicsEntity2D::try_remove_from_physics_controller() {
 	if (solver != nullptr) {
-		solver->remove_entity(ID);
+		solver->remove_entity(physics_id);
 		solver = nullptr;
 	}
 }
@@ -82,7 +82,7 @@ void PhysicsEntity2D::calculate_data_from_segments() {
 		for (int i = 0; i < physics_segments_len; i++) {
 			mass_to_check = physics_segments[i]->get_mass();
 			total_mass += mass_to_check;
-			center_of_mass += physics_segments[i]->get_position() * mass_to_check;
+			center_of_mass += (physics_segments[i]->get_position() + physics_segments[i]->get_center_of_mass()) * mass_to_check;
 		}
 		center_of_mass /= total_mass;
 		set_position(get_position() + center_of_mass);
@@ -110,6 +110,18 @@ void PhysicsEntity2D::calculate_data_from_segments() {
 				local_bounding_box.expand_to(polygon_vec_const[j] + polygon_pos);
 			}
 		}
+
+		// Should make it a box
+		if (local_bounding_box.size.x > local_bounding_box.size.y) {
+			real_t delta = local_bounding_box.size.x - local_bounding_box.size.y;
+			local_bounding_box.size.y += delta;
+			local_bounding_box.position.x -= delta / 2;
+		} else {
+			real_t delta = local_bounding_box.size.y - local_bounding_box.size.x;
+			local_bounding_box.size.x += delta;
+			local_bounding_box.position.y -= delta / 2;
+		}
+
 		// Increase it by 2 * so we also account for rotation
 		// Yes it's approximate, shut
 		local_bounding_box.position -= local_bounding_box.size / 2;
@@ -166,7 +178,7 @@ void PhysicsEntity2D::_notification(int p_what) {
 // Solver and collision resolution stuff
 
 void PhysicsEntity2D::set_id(size_t index) {
-	ID = index;
+	physics_id = index;
 }
 
 void PhysicsEntity2D::solver_apply_queued_forces() {
@@ -203,6 +215,13 @@ void PhysicsEntity2D::solver_prepare_for_step() {
 
 bool PhysicsEntity2D::solver_check_collision_broadphase(PhysicsEntity2D *other) {
 	if (collision_bounding_box.intersects(other->collision_bounding_box)) {
+
+		size_t length = connected_collision_pair_id_vec.size();
+		for (size_t i = 0; i < length; i++) {
+			if (solver->collision_pair_already_has_data(connected_collision_pair_id_vec[i], this->physics_id, other->physics_id)) {
+				return false;
+			}
+		}
 		return true;
 	}
 	return false;
@@ -241,7 +260,7 @@ bool PhysicsEntity2D::check_if_collision_pair_exists(real_t other_body_id) {
 	size_t length = connected_collision_pair_id_vec.size();
 
 	for (size_t i = 0; i < length; i++) {
-		if (solver->collision_pair_already_has_data(connected_collision_pair_id_vec[i], this->ID, other_body_id)) {
+		if (solver->collision_pair_already_has_data(connected_collision_pair_id_vec[i], this->physics_id, other_body_id)) {
 			return true;
 		}
 	}
@@ -260,9 +279,5 @@ void PhysicsEntity2D::remove_collision_pair(real_t pair_id) {
 }
 
 void PhysicsEntity2D::clear_collision_pair_vec() {
-	int length = connected_collision_pair_id_vec.size();
-
-	for (int i = length; i > 0; i--) {
-		solver->remove_collision_pair(connected_collision_pair_id_vec[i]);
-	}
+	connected_collision_pair_id_vec.clear();
 }

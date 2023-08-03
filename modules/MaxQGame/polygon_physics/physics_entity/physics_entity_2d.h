@@ -16,7 +16,7 @@ protected:
 	static String PhysicsSolverTypeID;
 
 	IndependentPhysicsSolver2D *solver = nullptr;
-	int ID = 0; // Our index in the current solver. Check if solver is nullptr before using
+	int physics_id = 0; // Our index in the current solver. Check if solver is nullptr before using
 	
 	real_t total_toi = 0; // Time of impact counter used in continous collision detection
 	Vector<real_t> connected_collision_pair_id_vec;

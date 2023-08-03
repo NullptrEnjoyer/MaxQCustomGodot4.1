@@ -47,17 +47,17 @@ void IndependentPhysicsSolver2D::tick() {
 	clear_collision_data();
 }
 
-void IndependentPhysicsSolver2D::add_entity(PhysicsEntity2D *detector) {
-	detector->set_id(entity_vec.size());
-	entity_vec.push_back(detector);
+void IndependentPhysicsSolver2D::add_entity(PhysicsEntity2D *entity) {
+	entity->set_id(entity_vec.size());
+	entity_vec.push_back(entity);
 }
 
-void IndependentPhysicsSolver2D::remove_entity(int detector_id) {
-	entity_vec.remove_at(detector_id);
-	int len = entity_vec.size();
-	for (int i = detector_id; i < len; i++) {
-		entity_vec[i]->set_id(i);
-	}
+void IndependentPhysicsSolver2D::remove_entity(int entity_id) {
+	//We really don't care about sorting this mess
+	int end_pos = entity_vec.size() - 1;
+	entity_vec.set(entity_id, entity_vec.get(end_pos));
+	entity_vec[entity_id]->set_id(entity_id);
+	entity_vec.resize(end_pos); // Yeet that mfer
 }
 
 void IndependentPhysicsSolver2D::add_collision_pair(size_t body1, size_t body2) {
@@ -75,7 +75,7 @@ void IndependentPhysicsSolver2D::add_collision_pair(size_t body1, size_t body2) 
 	size_t id = collision_pair_id_vec.size();
 
 	collision_pair_id_vec.push_back(loc);
-	collision_pair_vec.push_back({ initial_toi, 0, body1, body2 });
+	collision_pair_vec.push_back({ id, initial_toi, 0, body1, body2 });
 
 	entity_vec[body1]->add_collision_pair(id);
 	entity_vec[body2]->add_collision_pair(id);
@@ -90,15 +90,11 @@ void IndependentPhysicsSolver2D::remove_collision_pair(size_t collision_pair_id)
 	size_t loc = collision_pair_id_vec[collision_pair_id];
 	entity_vec[collision_pair_vec[loc].body1]->remove_collision_pair(collision_pair_id);
 	entity_vec[collision_pair_vec[loc].body2]->remove_collision_pair(collision_pair_id);
-	collision_pair_vec.remove_at(loc);
 
-	// We have to update positions for the IDs as the vector lost a member
-	// Maybe add a fast remove, like remove_at_unsorted(), where we just insert the last one into the replacing one
-	// which would drastically decrease the number of updates
-	size_t size = collision_pair_id_vec.size();
-	for (size_t i = collision_pair_id; i < size; i++) {
-		collision_pair_id_vec.set(i, collision_pair_id_vec[i] - 1);
-	}
+	int end_pos = collision_pair_vec.size() - 1;
+
+	collision_pair_vec.set(loc, collision_pair_vec.get(end_pos)); // We don't care about this being sorted, and this is a lot cheaper than remove_at due to our use case
+	collision_pair_id_vec.set(collision_pair_vec.get(loc).ID, loc); // Its position is different, so we have to update the ID
 }
 
 void IndependentPhysicsSolver2D::clear_collision_data() {

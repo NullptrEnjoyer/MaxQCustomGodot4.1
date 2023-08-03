@@ -30,6 +30,7 @@ https://www.youtube.com/watch?v=ob3VwY4JyzE (Reinventing Minecraft world generat
 
 https://stackoverflow.com/
 - https://stackoverflow.com/questions/5271583/center-of-gravity-of-a-polygon (see link to wayback machine)
+- https://stackoverflow.com/questions/8281964/continuous-physics-engines-collision-detection-techniques (thanks to themI use planes for cheap collision detection)
 
 The wayback machine
 - https://web.archive.org/web/20120229233701/http://paulbourke.net/geometry/polyarea/
