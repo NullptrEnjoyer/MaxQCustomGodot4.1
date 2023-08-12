@@ -36,9 +36,9 @@ protected:
 	Rect2 local_bounding_box = { 0, 0, 0, 0 };
 	Rect2 real_bounding_box = { 0, 0, 0, 0 };
 	Rect2 future_bounding_box = { 0, 0, 0, 0 };
-	Rect2 collision_bounding_box = { 0, 0, 0, 0 }; // Basically real_bounding_box + future_bounding_box
 
 	void _notification(int p_what);
+	static void _bind_methods();
 
 	void force_to_velocity(Vector2 force);
 	void torque_to_angular_velocity(real_t torque);
@@ -47,6 +47,11 @@ protected:
 	void try_remove_from_physics_controller();
 
 public:
+	Rect2 collision_bounding_box = { 0, 0, 0, 0 }; // Basically real_bounding_box + future_bounding_box
+	Rect2 get_collision_box();
+
+	Vector2 get_velocity();
+	real_t get_angular_velocity();
 
 	void queue_central_force(Vector2 force);
 	void queue_torque(real_t torque);
@@ -62,16 +67,25 @@ public:
 	// Solver and collision resolution stuff
 	void solver_apply_queued_forces();
 	void solver_prepare_for_step();
-	// This function WILL NOT report a collision if it can already be found via our connected_collision_pair_index list
-	bool solver_check_collision_broadphase(PhysicsEntity2D *other);
 	void solver_step_for_toi(real_t toi);
 	void solver_step();
 
 	void clear_collision_data();
+	void clear_segment_position_data();
 	real_t get_total_toi();
 
-	void add_collision_pair(real_t pair_id);
-	bool check_if_collision_pair_exists(real_t other_body_id);
-	void remove_collision_pair(real_t pair_id);
-	void clear_collision_pair_vec();
+	void solver_add_collision_pair(size_t pair_id);
+	bool solver_collision_pair_already_exists(size_t other_body_id);
+	void solver_remove_collision_pair(size_t pair_id);
+	void solver_invalidate_collision_pair_vec();
+	void solver_clear_collision_pair_vec();
+
+	void load_all_current_points(Vector<Vector<Vector2>> &target_vec);
+	void load_all_specified_timestep_points(Vector<Vector<Vector2>> &target_vec, real_t target_time);
+	void load_all_final_points(Vector<Vector<Vector2>> &target_vec);
+
+	/*
+	bool solver_find_outbound_collision_with_smallest_toi(LinePlaneIntersectResult3D &result, real_t &time_of_impact, PhysicsEntity2D *other);
+	bool solver_find_inbound_collision_with_smallest_toi(LinePlaneIntersectResult3D &result, real_t &time_of_impact, Vector2 global_start_point,
+															Vector2 global_end_point, real_t starting_detltatime);*/
 };

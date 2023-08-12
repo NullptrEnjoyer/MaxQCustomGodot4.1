@@ -87,6 +87,11 @@ void PhysicsSegment2D::calculate_area() {
 	Vector<Vector2> polygon_vec = get_polygon();
 	int length = polygon_vec.size();
 
+	if (unlikely(length < 3)) {
+		print_error("PhysicsSegment2D::calculate_area(): Polygon has no area, you sure you wanna do this?");
+		return;
+	}
+
 	// Skip-step first so we don't bother the for loop with checks
 	size_t j = length - 1; // Current number here
 	area += polygon_vec[j].x * polygon_vec[0].y;
@@ -117,6 +122,11 @@ void PhysicsSegment2D::calculate_center_of_mass() {
 	Vector<Vector2> polygon_vec = get_polygon();
 	int length = polygon_vec.size();
 	float factor = 0;
+
+	if (unlikely(length < 3)) {
+		print_error("PhysicsSegment2D::calculate_center_of_mass(): Polygon has no mass, you sure you wanna do this?");
+		return;
+	}
 
 	// Skip-step first so we don't bother the for loop with checks
 	size_t j = length - 1; // Current number here
@@ -166,4 +176,76 @@ void PhysicsSegment2D::_notification(int p_what) {
 			try_remove_from_physics_entity();
 			break;
 	}
+}
+
+Vector<Vector2> PhysicsSegment2D::entity_get_global_currpos() {
+	if (likely(entity != nullptr)  && !currpos_generated) {
+		currpos.append_array(get_polygon());
+		size_t currpos_len = currpos.size();
+
+		Vector2 segment_glob_pos = get_global_position();
+		Vector2 entity_glob_pos = entity->get_global_position();
+
+		real_t segment_glob_rot = get_global_rotation();
+
+		for (size_t i = 0; i < currpos_len; i++) {
+			currpos.set(i, currpos.get(i) + segment_glob_pos - entity_glob_pos);
+			currpos.set(i, currpos.get(i).rotated(segment_glob_rot));
+			currpos.set(i, currpos.get(i) +  entity_glob_pos);
+		}
+
+		currpos_generated = true;
+	}
+
+	return currpos;
+}
+
+Vector<Vector2> PhysicsSegment2D::entity_get_global_thispos(real_t target_time) {
+	// Make sure they're both generated first
+	entity_get_global_currpos();
+	entity_get_global_nextpos();
+
+	Vector<Vector2> target_pos;
+	target_pos.append_array(currpos);
+
+	size_t posvec_len = nextpos.size();
+	size_t multip_factor = (target_time - (get_physics_process_delta_time() - generated_nextpos_for_time)) / generated_nextpos_for_time;
+	for (size_t i = 0; i < posvec_len; i++) {
+		target_pos.set(i, currpos.get(i) + (nextpos.get(i) - currpos.get(i)) * multip_factor);
+	}
+
+	return target_pos;
+}
+
+Vector<Vector2> PhysicsSegment2D::entity_get_global_nextpos() {
+	if (likely(entity != nullptr) && (!nextpos_generated)) {
+		Vector2 velocity = entity->get_velocity();
+		real_t angular_velocity = entity->get_angular_velocity();
+		real_t for_time = get_physics_process_delta_time() - entity->get_total_toi();
+
+		nextpos.append_array(get_polygon());
+		size_t nextpos_len = nextpos.size();
+
+		Vector2 segment_glob_pos = get_global_position();
+		Vector2 entity_glob_pos = entity->get_global_position();
+
+		real_t segment_glob_rot = get_global_rotation();
+
+		for (size_t i = 0; i < nextpos_len; i++) {
+			nextpos.set(i, nextpos.get(i) + segment_glob_pos - entity_glob_pos);
+			nextpos.set(i, nextpos.get(i).rotated(segment_glob_rot + angular_velocity * for_time));
+			nextpos.set(i, nextpos.get(i) + entity_glob_pos + velocity * for_time);
+		}
+		nextpos_generated = true;
+		generated_nextpos_for_time = for_time;
+	}
+
+	return nextpos;
+}
+
+void PhysicsSegment2D::entity_clear_position_data() {
+	currpos_generated = false;
+	currpos.clear();
+	nextpos_generated = false;
+	nextpos.clear();
 }

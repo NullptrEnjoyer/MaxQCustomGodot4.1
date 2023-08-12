@@ -1,6 +1,7 @@
 /* thruster.cpp */
 
 #include "thruster.h"
+#include "../../../../polygon_physics/poly_physics_2d_defines.h"
 
 String Thruster::physicsBodyTypeID = typeid(PhysicsEntity2D).raw_name();
 
@@ -96,6 +97,9 @@ void Thruster::precompute_forces() {
 	offset.x = get_global_position().x - releveant_body->get_global_position().x;
 	offset.y = releveant_body->get_global_position().y - get_global_position().y; // Y is flipped, so to get accurate results we have to flip it back
 
+	offset = offset.rotated(releveant_body->get_global_rotation());
+	//offset = (get_global_position() - releveant_body->get_global_position()).rotated(get_global_rotation());
+
 	precomp_torque = (precomp_force.y * offset.x + precomp_force.x * offset.y);
 
 	autodetermine_dir();
@@ -119,7 +123,7 @@ void Thruster::_notification(int p_what) {
 			apply_thrust();
 			break;
 
-		case 22000: // NOTIFICATION_POLYPHYSICS_RECOMPUTE
+		case POLYPHYSICS_NOTIFICATION_RECOMPUTE:
 			precompute_forces();
 			break;
 

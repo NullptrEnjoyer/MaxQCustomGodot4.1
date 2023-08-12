@@ -3,9 +3,32 @@
 #pragma once
 
 #include "scene\2d\node_2d.h"
+#include "core\object\ref_counted.h"
+
+class LinePlaneIntersectResult3D : public RefCounted {
+	GDCLASS(LinePlaneIntersectResult3D, RefCounted);
+
+public:
+	Vector3 intersect_point = {0, 0, 0};
+	Vector3 intersect_normal = { 0, 0, 0 };
+
+	real_t determinant = 0;
+	real_t param_t = 0;
+	real_t param_u = 0;
+	real_t param_v = 0;
+
+	/// <returns>
+	/// d is determinant, t is the line's direction vector multiplier, u and v are the plane's direction vector multipliers,
+	/// therefore you're getting dtuv, in that order, in a Vector4
+	/// </returns>
+	Vector4 get_intersect_dtuv_data();
+	Vector3 get_intersect_point();
+	Vector3 get_intersect_normal();
+	static void _bind_methods();
+	void equalize(LinePlaneIntersectResult3D &other);
+};
 
 // Is parent of all physics thingamajigs, only really there for sorting stuff and some universal functions
-
 class PolygonPhysicsSystem2D : public Node2D {
 	GDCLASS(PolygonPhysicsSystem2D, Node2D);
 
@@ -20,6 +43,7 @@ public:
 	/// <summary>
 	/// For GDScript compatibility. This is dumm, we can't send a reference or a pointer to Vector2 so we have to return it.
 	/// Use simple to check if it actually intersects and then use this.
+	/// Edit: Can make a class as godot passes them by reference (like in line-plane collisions), but it's fineeeeeeee
 	/// </summary>
 	static Vector2 solve_line_intersect_with_result_GDS(Vector2 line1_point1, Vector2 line1_point2, Vector2 line1_offset,
 			Vector2 line2_point1, Vector2 line2_point2, Vector2 line2_offset);
@@ -28,33 +52,8 @@ public:
 	static bool solve_line_intersect_simple(Vector2 line1_point1, Vector2 line1_point2, Vector2 line1_offset,
 		Vector2 line2_point1, Vector2 line2_point2, Vector2 line2_offset);
 
+	static bool solve_line_plane_collision_with_result(Vector3 line1_point, Vector3 line1_dir,
+			Vector3 plane1_point, Vector3 plane1_dir_u, Vector3 plane1_dir_v, LinePlaneIntersectResult3D *result_out);
+
 	static void _bind_methods();
 };
-
-/*
-func _ready():
-    var p11:Vector2 = l1.get_point_position(0) + l1.global_position;
-    var p12:Vector2 = l1.get_point_position(1) + l1.global_position;
-    
-    var p21:Vector2 = l2.get_point_position(0) + l2.global_position;
-    var p22:Vector2 = l2.get_point_position(1) + l2.global_position;
-    
-    var a = p11.x
-    var b = p11.y
-    var c = p12.x - a
-    var d = p12.y - b
-    
-    var e = p21.x
-    var f = p21.y
-    var g = p22.x - e
-    var h = p22.y - f
-    
-    print("Vector 1 has starting point " + str(a) + ", " + str(b) + " with direction vector " + str(c) + ", " + str(d))
-    print("Vector 2 has starting point " + str(e) + ", " + str(f) + " with direction vector " + str(g) + ", " + str(h))
-    
-    var resultt = (h*e - h*a - g*f + g*b) / (c*h - g*d)
-    print("Result t is " + str(resultt))
-    
-    var resultu = -(-d*e + d*a + c*f - c*b) / (c*h - g*d)  ---> actually (-c*h + g*d), we can extract the - to only calculate the denominator once
-    print("Result u is " + str(resultu))
-*/

@@ -8,10 +8,6 @@
 
 #include "vessel_components/component_ID_singleton/component_ID_singleton.h"
 
-/* physics */
-
-#include "custom_physics/custom_physics_body_2d.h"
-
 /* polygon physics */
 
 #include "polygon_physics/poly_physics_2d.h"
@@ -44,12 +40,9 @@ void initialize_MaxQGame_module(ModuleInitializationLevel p_level) {
 	ComponentIDSingletonPtr = memnew(ComponentIDManager);
 	Engine::get_singleton()->add_singleton(Engine::Singleton("ComponentIDManager", ComponentIDManager::get_singleton()));
 
-	/* physics */
-
-	ClassDB::register_class<MaxQRigidBody2D>();
-
 	/* polygon physics */
 
+	GDREGISTER_CLASS(LinePlaneIntersectResult3D);
 	GDREGISTER_VIRTUAL_CLASS(PolygonPhysicsSystem2D);
 	GDREGISTER_CLASS(PhysicsEntity2D);
 	GDREGISTER_CLASS(IndependentPhysicsSolver2D);

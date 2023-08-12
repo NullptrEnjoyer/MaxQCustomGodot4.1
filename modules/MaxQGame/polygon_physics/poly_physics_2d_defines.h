@@ -1,0 +1,3 @@
+#pragma once
+
+#define POLYPHYSICS_NOTIFICATION_RECOMPUTE 22000
