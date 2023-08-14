@@ -1,6 +1,7 @@
 /* poly_physics_2d.cpp */
 
 #include "poly_physics_2d.h"
+#include "../defines.h"
 
 Vector4 LinePlaneIntersectResult3D::get_intersect_dtuv_data() {
 	return Vector4(determinant, param_t, param_u, param_v);
@@ -26,6 +27,7 @@ void LinePlaneIntersectResult3D::equalize(LinePlaneIntersectResult3D &other) {
 	param_t = other.param_t;
 	param_u = other.param_u;
 	param_v = other.param_v;
+	was_processed = other.was_processed;
 }
 
 bool PolygonPhysicsSystem2D::solve_line_intersect_with_result(Vector2 line1_point1, Vector2 line1_point2, Vector2 line1_offset,
@@ -45,7 +47,8 @@ bool PolygonPhysicsSystem2D::solve_line_intersect_with_result(Vector2 line1_poin
 
 	*intersect_point = line1_point1 + (t * dir_vec_1);
 
-	if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+	if (t >= 0 - MAXQ_REAL_T_ARBITRARY_EPSILON && t <= 1 + MAXQ_REAL_T_ARBITRARY_EPSILON &&
+		u >= 0 - MAXQ_REAL_T_ARBITRARY_EPSILON && u <= 1 + MAXQ_REAL_T_ARBITRARY_EPSILON) {
 		return 1;
 	}
 	return 0;
@@ -74,7 +77,8 @@ bool PolygonPhysicsSystem2D::solve_line_intersect_simple(Vector2 line1_point1, V
 	real_t t = (dir_vec_2.y * line2_point1.x - dir_vec_2.y * line1_point1.x - dir_vec_2.x * line2_point1.y + dir_vec_2.x * line1_point1.y) / denominator;
 	real_t u = -(-dir_vec_1.y * line2_point1.x + dir_vec_1.y * line1_point1.x + dir_vec_1.x * line2_point1.y - dir_vec_1.x * line1_point1.y) / denominator;
 
-	if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+	if (t >= 0 - MAXQ_REAL_T_ARBITRARY_EPSILON && t <= 1 + MAXQ_REAL_T_ARBITRARY_EPSILON &&
+			u >= 0 - MAXQ_REAL_T_ARBITRARY_EPSILON && u <= 1 + MAXQ_REAL_T_ARBITRARY_EPSILON) {
 		return 1;
 	}
 	return 0;
@@ -102,9 +106,11 @@ bool PolygonPhysicsSystem2D::solve_line_plane_collision_with_result(Vector3 line
 
 	result_out->intersect_point = line1_point + result_out->param_t * line1_dir;
 
-	return ((result_out->param_t >= 0 && result_out->param_t <= 1) &&
-			(result_out->param_u >= 0 && result_out->param_u <= 1) &&
-			(result_out->param_v >= 0 && result_out->param_v <= 1));
+	result_out->was_processed = true;
+
+	return ((result_out->param_t >= 0 - MAXQ_REAL_T_ARBITRARY_EPSILON && result_out->param_t <= 1 + MAXQ_REAL_T_ARBITRARY_EPSILON) &&
+			(result_out->param_u >= 0 - MAXQ_REAL_T_ARBITRARY_EPSILON && result_out->param_u <= 1 + MAXQ_REAL_T_ARBITRARY_EPSILON) &&
+			(result_out->param_v >= 0 - MAXQ_REAL_T_ARBITRARY_EPSILON && result_out->param_v <= 1 + MAXQ_REAL_T_ARBITRARY_EPSILON));
 }
 
 void PolygonPhysicsSystem2D::_bind_methods() {

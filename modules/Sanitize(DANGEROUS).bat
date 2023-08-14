@@ -1,0 +1,2 @@
+del /S *.obj
+pause

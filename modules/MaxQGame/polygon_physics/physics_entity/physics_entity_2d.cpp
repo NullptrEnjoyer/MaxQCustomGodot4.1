@@ -256,10 +256,18 @@ void PhysicsEntity2D::solver_step() {
 		calculate_data_from_segments();
 	}
 
+	//Vector<Vector<Vector2>> next_prediction;
+	//load_all_final_points(next_prediction);
+
 	real_t time = (get_physics_process_delta_time() - total_toi);
 	set_global_position(get_global_position() + velocity * time);
 	set_global_rotation(get_global_rotation() + angular_velocity * time);
 	clear_collision_data();
+
+	//Vector<Vector<Vector2>> actual_next_position;
+	//load_all_current_points(actual_next_position);
+
+	//print_line("Delta is " + (actual_next_position[0][0] - next_prediction[0][0]) + " out of " + (velocity * time));
 }
 
 void PhysicsEntity2D::clear_collision_data() {
@@ -318,7 +326,7 @@ void PhysicsEntity2D::solver_clear_collision_pair_vec() {
 void PhysicsEntity2D::load_all_current_points(Vector<Vector<Vector2>> &target_vec) {
 	size_t length = physics_segments.size();
 	for (size_t i = 0; i < length; i++) {
-		target_vec.push_back(Vector<Vector2>(physics_segments[i]->entity_get_global_currpos()));
+		target_vec.push_back(physics_segments[i]->entity_get_global_currpos());
 	}
 }
 
@@ -332,7 +340,7 @@ void PhysicsEntity2D::load_all_specified_timestep_points(Vector<Vector<Vector2>>
 void PhysicsEntity2D::load_all_final_points(Vector<Vector<Vector2>> &target_vec) {
 	size_t length = physics_segments.size();
 	for (size_t i = 0; i < length; i++) {
-		target_vec.push_back(Vector<Vector2>(physics_segments[i]->entity_get_global_nextpos()));
+		target_vec.push_back(physics_segments[i]->entity_get_global_nextpos());
 	}
 }
 /*

@@ -13,9 +13,10 @@ public:
 	Vector3 intersect_normal = { 0, 0, 0 };
 
 	real_t determinant = 0;
-	real_t param_t = 0;
+	real_t param_t = 1;
 	real_t param_u = 0;
 	real_t param_v = 0;
+	bool was_processed = false;
 
 	/// <returns>
 	/// d is determinant, t is the line's direction vector multiplier, u and v are the plane's direction vector multipliers,

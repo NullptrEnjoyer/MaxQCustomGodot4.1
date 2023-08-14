@@ -43,7 +43,7 @@ class IndependentPhysicsSolver2D : public PolygonPhysicsSystem2D {
 
 protected:
 
-//	static void _bind_methods();
+	static void _bind_methods();
 	void _notification(int p_what);
 	void tick();
 
@@ -51,7 +51,21 @@ protected:
 	Vector<CollisionPair> collision_pair_vec;
 	Vector<size_t> collision_pair_id_vec;
 
+	Vector<Vector2> REMOVEME_body1start;
+	Vector<Vector2> REMOVEME_body1end;
+	Vector<Vector2> REMOVEME_body2start;
+	Vector<Vector2> REMOVEME_body2end;
+
+	/*
+	bool REMOVEME_wearealreadyabove = false;
+	bool REMOVEME_shoulddoextracheck = false;
+	*/
+
 public:
+	Vector<Vector2> REMOVEME_getbody1start();
+	Vector<Vector2> REMOVEME_getbody1end();
+	Vector<Vector2> REMOVEME_getbody2start();
+	Vector<Vector2> REMOVEME_getbody2end();
 
 	/// <returns>Position of insertion (needed for removal function).</returns>
 	void add_entity(PhysicsEntity2D *entity);
@@ -66,11 +80,15 @@ public:
 	bool check_collision_broadphase(size_t first_entity_loc, size_t second_entity_loc);
 	// Used to check if a collision actually happened - ridicolously expensive
 	bool check_collision_narrowphase(size_t collision_pair_loc_not_id);
-	// Extension for check_collision_narrowphase(). result is only changed if parameter_t for any of the calculations is smaller than the input one.
+	// Extension for check_collision_narrowphase(). Result is only changed if parameter_t for any of the calculations is smaller than the input one.
 	// Returns true if there was a collision
 	bool narrowphase_collision_compute(Vector<Vector<Vector2>> &body1_starting_points_vec, Vector<Vector<Vector2>> &body1_ending_points_vec,
-			Vector<Vector<Vector2>> &body2_starting_points_vec, Vector<Vector<Vector2>> &body2_ending_points_vec, LinePlaneIntersectResult3D& result
-		);
+			Vector<Vector<Vector2>> &body2_starting_points_vec, Vector<Vector<Vector2>> &body2_ending_points_vec, LinePlaneIntersectResult3D &result);
+	// Extension for narrowphase_collision_compute(). Result is only changed if parameter_t for any of the calculations is smaller than the input one.
+	// Returns true if there was a collision
+	bool narrowphase_collision_do_compute(Vector2 line1point0, Vector2 line1point1,
+			Vector2 plane_point_bottom_first, Vector2 plane_point_bottom_second, Vector2 plane_point_top_first, Vector2 plane_point_top_second,
+			LinePlaneIntersectResult3D &result);
 
 	/// <returns>false if there were no real collisions</returns>
 	void resolve_collision_pairs(); 

@@ -1,6 +1,7 @@
 /* body_segment_2d.cpp */
 
 #include "body_segment_2d.h"
+#include "../../defines.h"
 
 String PhysicsSegment2D::PhysicsEntityTypeID = typeid(PhysicsEntity2D).raw_name();
 
@@ -184,14 +185,15 @@ Vector<Vector2> PhysicsSegment2D::entity_get_global_currpos() {
 		size_t currpos_len = currpos.size();
 
 		Vector2 segment_glob_pos = get_global_position();
-		Vector2 entity_glob_pos = entity->get_global_position();
-
 		real_t segment_glob_rot = get_global_rotation();
 
 		for (size_t i = 0; i < currpos_len; i++) {
-			currpos.set(i, currpos.get(i) + segment_glob_pos - entity_glob_pos);
-			currpos.set(i, currpos.get(i).rotated(segment_glob_rot));
-			currpos.set(i, currpos.get(i) +  entity_glob_pos);
+			Vector2 gon = currpos.get(i);
+
+			gon = gon.rotated(segment_glob_rot);
+			gon += segment_glob_pos;
+
+			currpos.set(i, gon);
 		}
 
 		currpos_generated = true;
@@ -226,15 +228,40 @@ Vector<Vector2> PhysicsSegment2D::entity_get_global_nextpos() {
 		nextpos.append_array(get_polygon());
 		size_t nextpos_len = nextpos.size();
 
-		Vector2 segment_glob_pos = get_global_position();
 		Vector2 entity_glob_pos = entity->get_global_position();
 
+		Vector2 segment_glob_pos = get_global_position();
 		real_t segment_glob_rot = get_global_rotation();
 
+		Vector2 delta_space = (velocity * for_time);
+
+		/*
+		if (delta_space.x < 0) {
+			delta_space.x -= MAXQ_REAL_T_ARBITRARY_EPSILON;
+		} else {
+			delta_space.x += MAXQ_REAL_T_ARBITRARY_EPSILON;
+		}
+		if (delta_space.y < 0) {
+			delta_space.y -= MAXQ_REAL_T_ARBITRARY_EPSILON;
+		}
+		else {
+			delta_space.y += MAXQ_REAL_T_ARBITRARY_EPSILON;
+		}*/
+
+		real_t delta_rotation = (angular_velocity * for_time);
+
 		for (size_t i = 0; i < nextpos_len; i++) {
-			nextpos.set(i, nextpos.get(i) + segment_glob_pos - entity_glob_pos);
-			nextpos.set(i, nextpos.get(i).rotated(segment_glob_rot + angular_velocity * for_time));
-			nextpos.set(i, nextpos.get(i) + entity_glob_pos + velocity * for_time);
+			Vector2 gon = nextpos.get(i);
+
+			gon = gon.rotated(segment_glob_rot);
+			gon += segment_glob_pos - entity_glob_pos;
+			gon = gon.rotated(delta_rotation);
+			gon += entity_glob_pos + delta_space;
+
+			//gon = gon.rotated(segment_next_glob_rot);
+			//gon += segment_next_glob_pos;
+
+			nextpos.set(i, gon);
 		}
 		nextpos_generated = true;
 		generated_nextpos_for_time = for_time;
