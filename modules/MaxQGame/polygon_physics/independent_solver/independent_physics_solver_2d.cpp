@@ -1,14 +1,6 @@
 /* independent_physics_solver_2d.cpp */
 
 #include "independent_physics_solver_2d.h"
-#include "../../defines.h"
-
-void IndependentPhysicsSolver2D::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("REMOVEME_getbody1start"), &IndependentPhysicsSolver2D::REMOVEME_getbody1start);
-	ClassDB::bind_method(D_METHOD("REMOVEME_getbody1end"), &IndependentPhysicsSolver2D::REMOVEME_getbody1end);
-	ClassDB::bind_method(D_METHOD("REMOVEME_getbody2start"), &IndependentPhysicsSolver2D::REMOVEME_getbody2start);
-	ClassDB::bind_method(D_METHOD("REMOVEME_getbody2end"), &IndependentPhysicsSolver2D::REMOVEME_getbody2end);
-}
 
 void IndependentPhysicsSolver2D::_notification(int p_what) {
 	if (Engine::get_singleton()->is_editor_hint()) {
@@ -28,14 +20,26 @@ void IndependentPhysicsSolver2D::_notification(int p_what) {
 
 void IndependentPhysicsSolver2D::tick() {
 
+#ifdef POLYPHYSICS_SHOULD_STEP_ON_COLLISION
+	if (HALT) {
+		if (Input::get_singleton()->is_action_pressed("ui_accept")) {
+			HALT = false;
+		} else {
+			return;
+		}
+	}
+#endif
+
+	solver_physics_time = 1.0 / Engine::get_singleton()->get_physics_ticks_per_second();
+
 	int length = entity_vec.size();
 
 	for (size_t i = 0; i < length; i++) {
-		entity_vec[i]->solver_apply_queued_forces();
+		entity_vec[i]->solver_apply_queued_forces(solver_physics_time);
 	}
 
 	for (size_t i = 0; i < length; i++) {
-		entity_vec[i]->solver_prepare_for_step();
+		entity_vec[i]->solver_prepare_for_step(solver_physics_time, get_solver_linear_resolution(), get_solver_angular_resolution());
 	}
 
 	// Gather collisions
@@ -54,24 +58,75 @@ void IndependentPhysicsSolver2D::tick() {
 	clear_collision_data();
 
 	for (size_t i = 0; i < length; i++) {
-		entity_vec[i]->solver_step();
+		entity_vec[i]->solver_step(solver_physics_time);
 	}
 }
 
-Vector<Vector2> IndependentPhysicsSolver2D::REMOVEME_getbody1start() {
-	return REMOVEME_body1start;
+
+#ifdef POLYPHYSICS_SHOULD_VISUALIZE
+void IndependentPhysicsSolver2D::collision_visualizer_clear_data() {
+	line_beginnings.clear();
+	line_endings.clear();
+	line_data.clear();
+
+	for (size_t i = 0; i < visdat_objects_generated; i++) {
+		Line2D *line = lines[i];
+		line->clear_points();
+		line->set_global_position(Vector2(0, 0));
+
+		Label *label = line_labels[i];
+		label->set_text("");
+	}
+
+	visdat_objects_used = 0;
+}
+void IndependentPhysicsSolver2D::collision_visualizer_add_line(Color _color, real_t _width, String _data, Vector2 _beginning, Vector2 _end) {
+	Line2D *line;
+	Label *label;
+
+	if (visdat_objects_used >= visdat_objects_generated) {
+		line = memnew(Line2D);
+		add_child(line);
+		line->set_owner(this);
+
+		label = memnew(Label);
+		line->add_child(label);
+		label->set_owner(this);
+
+		lines.push_back(line);
+		line_labels.push_back(label);
+
+		++visdat_objects_generated;
+	} else {
+		line = lines[visdat_objects_used];
+		label = line_labels[visdat_objects_used];
+	}
+	++visdat_objects_used;
+
+	line->set_default_color(_color);
+	line->set_width(_width);
+	label->set_text(_data);
+	line->add_point(_beginning);
+	line->add_point(_end);
+}
+void IndependentPhysicsSolver2D::collision_visualizer_generate_data() {
+	collision_visualizer_clear_data();
+
+	collision_visualizer_add_line({ 0, 0, 0, 255 }, 4, "", rep_collision_point - Vector2(2, 0), rep_collision_point + Vector2(2, 0));
+	collision_visualizer_add_line({ 200, 0, 0, 255 }, 2, "", rep_collision_point, rep_collision_point + rep_collision_normal * 20);
+}
+#endif
+
+real_t IndependentPhysicsSolver2D::get_solver_physics_time() {
+	return solver_physics_time;
 }
 
-Vector<Vector2> IndependentPhysicsSolver2D::REMOVEME_getbody1end() {
-	return REMOVEME_body1end;
+real_t IndependentPhysicsSolver2D::get_solver_linear_resolution() {
+	return solver_linear_resolution;
 }
 
-Vector<Vector2> IndependentPhysicsSolver2D::REMOVEME_getbody2start() {
-	return REMOVEME_body2start;
-}
-
-Vector<Vector2> IndependentPhysicsSolver2D::REMOVEME_getbody2end() {
-	return REMOVEME_body2end;
+real_t IndependentPhysicsSolver2D::get_solver_angular_resolution() {
+	return solver_angular_resolution;
 }
 
 void IndependentPhysicsSolver2D::add_entity(PhysicsEntity2D *entity) {
@@ -126,6 +181,11 @@ bool IndependentPhysicsSolver2D::check_collision_broadphase(size_t first_entity_
 	return false;
 }
 
+bool IndependentPhysicsSolver2D::check_collision_narrowphase(size_t collision_pair_loc_not_id) {
+	return false;
+}
+
+/*
 // Find the collision with the smallest toi
 bool IndependentPhysicsSolver2D::check_collision_narrowphase(size_t collision_pair_loc_not_id) {
 	CollisionPair target_copy = collision_pair_vec[collision_pair_loc_not_id];
@@ -157,67 +217,28 @@ bool IndependentPhysicsSolver2D::check_collision_narrowphase(size_t collision_pa
 	body1->load_all_final_points(body1_ending_points);
 	body2->load_all_final_points(body2_ending_points);
 
-	REMOVEME_body1start.clear();
-	REMOVEME_body1end.clear();
-	REMOVEME_body2start.clear();
-	REMOVEME_body2end.clear();
-
-	REMOVEME_body1start.append_array(body1_starting_points[0]);
-	REMOVEME_body1end.append_array(body1_ending_points.get(0));
-	REMOVEME_body2start.append_array(body2_starting_points[0]);
-	REMOVEME_body2end.append_array(body2_ending_points[0]);
-
-	//print_line("Distance (" + String::num(body1_starting_points[0][0].x - body2_starting_points[0][0].x) + ", " +
-	//		String::num(body1_starting_points[0][0].y - body2_starting_points[0][0].y) + ")");
-
 	size_t body1_segments_len = body1_starting_points.size();
 	size_t body2_segments_len = body2_starting_points.size();
 
 	LinePlaneIntersectResult3D final_result;
-	LinePlaneIntersectResult3D temp_result;
-
-	/*
-	//TEMP; DELETE ME
-
-	if (!REMOVEME_wearealreadyabove) {
-		for (size_t i = 0; i < body1_ending_points[0].size(); i++) {
-			if (body1_ending_points[0][i].y < 0) {
-				print_line("upper, number " + String::num_int64(i));
-				REMOVEME_wearealreadyabove = true;
-				REMOVEME_shoulddoextracheck = true;
-				break;
-			}
-		}
-	} else {
-		REMOVEME_shoulddoextracheck = false;
-		bool still_above = false;
-		for (size_t i = 0; i < body1_ending_points[0].size(); i++) {
-			if (body1_ending_points[0][i].y < 0) {
-				still_above = true;
-				break;
-			}
-		}
-		REMOVEME_wearealreadyabove = still_above;
-	}
-
-	//TEMP; DELETE ME
-	*/
-
 	bool returnbool = false;
 
-	if (narrowphase_collision_compute(body1_starting_points, body1_ending_points, body2_starting_points, body2_ending_points, final_result)) {
+	if (narrowphase_collision_compute(body1_starting_points, body1_ending_points, body2_starting_points, body2_ending_points,
+				final_result, target_copy.additional_info)) {
+
+		target_copy.body2_is_intruding_body = false;
 		returnbool = true;
 	}
-	// Maybe I don't even need the temp result, but oh well
-	if (narrowphase_collision_compute(body2_starting_points, body2_ending_points, body1_starting_points, body1_ending_points, temp_result)) {
+	// Will return true ONLY if it finds a collision which happens sooner (has a lower param_t) than the provided result
+	if (narrowphase_collision_compute(body2_starting_points, body2_ending_points, body1_starting_points, body1_ending_points,
+				final_result, target_copy.additional_info)) {
+
+		target_copy.body2_is_intruding_body = true;
 		returnbool = true;
-		if (!final_result.was_processed || temp_result.param_t > final_result.param_t) {
-			final_result.equalize(temp_result);
-		}
 	}
 
 	if (returnbool == true) {
-		target_copy.toi = final_result.param_t * (get_physics_process_delta_time() - target_copy.initial_toi);
+		target_copy.toi = final_result.param_t * (get_physics_process_delta_time() - target_copy.initial_toi) + target_copy.initial_toi;
 		target_copy.impact_normal = Vector2(final_result.intersect_normal.x, final_result.intersect_normal.y);
 		target_copy.impact_point = Vector2(final_result.intersect_point.x, final_result.intersect_point.y);
 		collision_pair_vec.set(collision_pair_loc_not_id, target_copy);
@@ -226,13 +247,15 @@ bool IndependentPhysicsSolver2D::check_collision_narrowphase(size_t collision_pa
 	}
 	return false;
 }
+*/
 
 bool IndependentPhysicsSolver2D::narrowphase_collision_compute(Vector<Vector<Vector2>> &body1_starting_points_vec, Vector<Vector<Vector2>> &body1_ending_points_vec,
-			Vector<Vector<Vector2>> &body2_starting_points_vec, Vector<Vector<Vector2>> &body2_ending_points_vec, LinePlaneIntersectResult3D &result) {
+		Vector<Vector<Vector2>> &body2_starting_points_vec, Vector<Vector<Vector2>> &body2_ending_points_vec,
+		LinePlaneIntersectResult3D &result, CollisionInfo &info)
+{
 
 	size_t body1_segments_len = body1_starting_points_vec.size();
 	size_t body2_segments_len = body2_starting_points_vec.size();
-	LinePlaneIntersectResult3D temp_result;
 	bool returnbool = false;
 
 	// For every point we project where it goes in 3D space (time is the third dimension), and calculate the intersect between the moving point and the moving line
@@ -261,6 +284,11 @@ bool IndependentPhysicsSolver2D::narrowphase_collision_compute(Vector<Vector<Vec
 								body2_temp_ending_points_vec->get(pj - 1), body2_temp_ending_points_vec->get(pj),
 								result)) {
 						returnbool = true;
+						info.intruding_body_segment = si;
+						info.intruding_body_point = pi;
+						info.defending_body_segment = sj;
+						info.defending_body_line_point_1 = pj - 1;
+						info.defending_body_line_point_2 = pj;
 					}
 				}
 				// And here we do the first-to-last points to complete the polygon
@@ -271,6 +299,11 @@ bool IndependentPhysicsSolver2D::narrowphase_collision_compute(Vector<Vector<Vec
 							body2_temp_ending_points_vec->get(last_body2_point), body2_temp_ending_points_vec->get(0),
 							result)) {
 					returnbool = true;
+					info.intruding_body_segment = si;
+					info.intruding_body_point = pi;
+					info.defending_body_segment = sj;
+					info.defending_body_line_point_1 = last_body2_point;
+					info.defending_body_line_point_2 = 0;
 				}
 			}
 		}
@@ -280,10 +313,11 @@ bool IndependentPhysicsSolver2D::narrowphase_collision_compute(Vector<Vector<Vec
 
 bool IndependentPhysicsSolver2D::narrowphase_collision_do_compute(Vector2 line1point0, Vector2 line1point1,
 		Vector2 plane_point_bottom_first, Vector2 plane_point_bottom_second, Vector2 plane_point_top_first, Vector2 plane_point_top_second,
-		LinePlaneIntersectResult3D &result) {
+		LinePlaneIntersectResult3D &result)
+{
 
 	bool returnbool = false;
-	LinePlaneIntersectResult3D temp_result;
+	LinePlaneIntersectResult3D temp_result; // The function writes to this regardless of if it passes, so we must have the temp result go first
 
 	if (solve_line_plane_collision_with_result(
 				Vector3(line1point0.x, line1point0.y, 0), // Starting point
@@ -301,7 +335,7 @@ bool IndependentPhysicsSolver2D::narrowphase_collision_do_compute(Vector2 line1p
 		if (((temp_result.param_u + temp_result.param_v) <= (1 + MAXQ_REAL_T_ARBITRARY_EPSILON)) &&
 				(!result.was_processed || (temp_result.param_t >= result.param_t))) {
 
-			result.equalize(temp_result);
+			result.equalize(&temp_result);
 			returnbool = true;
 		}
 	}
@@ -321,7 +355,7 @@ bool IndependentPhysicsSolver2D::narrowphase_collision_do_compute(Vector2 line1p
 		if (((temp_result.param_u + temp_result.param_v) <= (1 + MAXQ_REAL_T_ARBITRARY_EPSILON)) &&
 				(!result.was_processed || (temp_result.param_t >= result.param_t))) {
 
-			result.equalize(temp_result);
+			result.equalize(&temp_result);
 			returnbool = true;
 		}
 	}
@@ -338,28 +372,17 @@ void IndependentPhysicsSolver2D::resolve_collision_pairs() {
 	for (size_t i = 0; i < collision_pair_vec_length; i++) {
 		target = collision_pair_vec[i];
 
-		if (!check_collision_narrowphase(target.ID)) {
-
-			/*
-			//TEMP, REMOVEME!
-
-			if (REMOVEME_shoulddoextracheck) {
-				check_collision_narrowphase(target.ID);
-			}
-			
-			//TEMP, REMOVEME!
-			*/
-
+		if (!check_collision_narrowphase(i)) {
 			remove_collision_pair(target.ID);
 			--i;
 			--collision_pair_vec_length;
 			continue;
 		}
 		print_line("COLLISION found @ frame " + String::num_int64(Engine::get_singleton()->get_physics_frames()));
-		collision_pair_vec.set(i, target);
+		//collision_pair_vec.set(i, target);
 	}
 
-	return; // For now
+	// return; // For now
 
 	// Now we process until we have no more collision pairs. Might cause an infinite loop under some collision conditions, so I might have to fix that.
 	{
@@ -378,43 +401,37 @@ void IndependentPhysicsSolver2D::resolve_collision_pairs() {
 				}
 			}
 
-			prev_collision_pair_vec_length = collision_pair_vec_length;
 			body_1_index = collision_pair_vec[smallest_toi_collision_pair_index].body1;
-			body_2_index = collision_pair_vec[smallest_toi_collision_pair_index].body1;
+			body_2_index = collision_pair_vec[smallest_toi_collision_pair_index].body2;
 			// Removes all associated collisions once it's done as they are invalid
 			// Regenerates broadphase collision boxes
 			// Steps involved bodies ahead by their TOI
-			// resolve_collision(smallest_toi_collision_pair_index);
+			resolve_collision(smallest_toi_collision_pair_index);
 			entity_vec_length = entity_vec.size();
 
-			if (check_collision_broadphase(body_1_index, body_2_index)) {
-				add_collision_pair(body_1_index, body_2_index);
-			}
+			prev_collision_pair_vec_length = collision_pair_vec.size();
 
 			for (size_t i = 0; i < entity_vec_length; i++) {
-				if (i == body_1_index || i == body_2_index) {
-					continue;
-				}
-				if (check_collision_broadphase(body_1_index, i)) {
+				if (i != body_1_index && check_collision_broadphase(body_1_index, i)) {
 					add_collision_pair(body_1_index, i);
 				}
-				if (check_collision_broadphase(body_2_index, i)) {
+				if (i != body_2_index && check_collision_broadphase(body_2_index, i)) {
 					add_collision_pair(body_2_index, i);
 				}
 			}
 
-			// Now we only do narrowphase checks on every new collision pair
+			// Now we only do narrowphase checks on every new collision pair, which is every vector between prev_collision_pair_vec_length and collision_pair_vec_length
 			collision_pair_vec_length = collision_pair_vec.size();
 			for (size_t i = prev_collision_pair_vec_length; i < collision_pair_vec_length; i++) {
 				target = collision_pair_vec[i];
 
-				if (!check_collision_narrowphase(target.ID)) {
+				if (!check_collision_narrowphase(i)) {
 					remove_collision_pair(target.ID);
 					--i;
 					--collision_pair_vec_length;
 					continue;
 				}
-				collision_pair_vec.set(i, target);
+				//collision_pair_vec.set(i, target);
 			}
 		}
 	}
@@ -431,17 +448,113 @@ void IndependentPhysicsSolver2D::clear_collision_data() {
 	}
 }
 
+// https://en.m.wikipedia.org/wiki/Collision_response
+// Slightly modified for 2D
+void IndependentPhysicsSolver2D::resolve_collision(int collision_pair_loc) {
+	print_line("Collision resolution fired, details to follow:");
+	CollisionPair target_copy = collision_pair_vec[collision_pair_loc];
 
-/*
-if (!entity_vec[collision_pair_vec[i].body1]->solver_check_collision_narrowphase(entity_vec[collision_pair_vec[i].body2], target.initial_toi, &result)) {
-	remove_collision_pair(target.ID);
-	--i; // Will never try to access -1 because this is size_t, therefore we overflow into a number bigger than the length if we're already 0
-	--collision_pair_vec_length;
-	continue;
+	PhysicsEntity2D *intruding_body;
+	PhysicsEntity2D *defending_body;
+
+	if (!target_copy.body2_is_intruding_body) {
+		intruding_body = entity_vec[target_copy.body1];
+		defending_body = entity_vec[target_copy.body2];
+	} else {
+		intruding_body = entity_vec[target_copy.body2];
+		defending_body = entity_vec[target_copy.body1];
+	}
+
+	// TODO!!!
+	print_error("Aren't you forgetting something? TODO!!!");
+
+	// Important: these also reset position data. Do not disable.
+	// intruding_body->solver_step_for_toi(target_copy.toi - intruding_body->get_total_toi());
+	// defending_body->solver_step_for_toi(target_copy.toi - defending_body->get_total_toi());
+
+	PhysicsSegment2D *intruding_body_affected_segment = intruding_body->get_segments().get(target_copy.additional_info.intruding_body_segment);
+	PhysicsSegment2D *defending_body_affected_segment = defending_body->get_segments().get(target_copy.additional_info.defending_body_segment);
+
+	// "Coefficient of restitution", basically the bouncyness of the objects
+	real_t restitution_coefficient = (intruding_body_affected_segment->get_bouncyness() + defending_body_affected_segment->get_bouncyness()) / 2;
+	//restitution_coefficient = -0.9;
+
+	//The global position of a body is always its center of mass
+	Vector2 intruding_center_of_mass_vec = target_copy.impact_point - intruding_body->get_global_position();
+	Vector2 defending_center_of_mass_vec = target_copy.impact_point - defending_body->get_global_position();
+
+	Vector2 impact_normal = target_copy.impact_normal;
+	impact_normal.normalize();
+	impact_normal *= -1;
+
+	Vector2 intruding_angular_velocity_in_point = intruding_body->get_angular_velocity() * Vector2(-intruding_center_of_mass_vec.y, intruding_center_of_mass_vec.x);
+	Vector2 defending_angular_velocity_in_point = defending_body->get_angular_velocity() * Vector2(-defending_center_of_mass_vec.y, defending_center_of_mass_vec.x);
+
+	Vector2 velocity_differential = intruding_body->get_velocity() + intruding_angular_velocity_in_point -
+			(defending_body->get_velocity() + defending_angular_velocity_in_point);
+
+	real_t defending_subcomponent = (defending_body->get_inverse_total_inertia()) * (defending_center_of_mass_vec.cross(impact_normal));
+	Vector2 defending_component = defending_subcomponent * Vector2(-defending_center_of_mass_vec.y, defending_center_of_mass_vec.x);
+
+	real_t intruding_subcomponent = (intruding_body->get_inverse_total_inertia()) * (intruding_center_of_mass_vec.cross(impact_normal));
+	Vector2 intruding_component = intruding_subcomponent * Vector2(-intruding_center_of_mass_vec.y, intruding_center_of_mass_vec.x);
+
+	real_t needed_denominator_dot_product = (defending_component + intruding_component).dot(impact_normal);
+
+	real_t numerator = -(((1 + restitution_coefficient) * (velocity_differential)).dot(impact_normal));
+
+	real_t impulse_magnitude = numerator / ((defending_body->get_inverse_total_mass() + intruding_body->get_inverse_total_mass()) + needed_denominator_dot_product);
+	Vector2 impulse = impulse_magnitude * impact_normal;
+
+	/*
+	print_line("defending_line" + defending_body_affected_segment->get_polygon().get(target_copy.additional_info.defending_body_line_point_1) +
+		defending_body_affected_segment->get_polygon().get(target_copy.additional_info.defending_body_line_point_2));
+
+	print_line("impact_point " + target_copy.impact_point);
+	print_line("impact_normal " + impact_normal);
+	print_line("impulse_magnitude " + String::num_real(impulse_magnitude));
+	print_line("Impulse " + impulse);
+	*/
+
+#ifdef POLYPHYSICS_SHOULD_VISUALIZE
+	rep_collision_point = target_copy.impact_point;
+	rep_collision_normal = impact_normal * 5;
+
+	rep_intruding_body_center = intruding_body->get_position();
+	rep_intruding_body_velocity = intruding_body->get_velocity();
+	rep_intruding_body_angular_velocity = intruding_body->get_angular_velocity();
+	rep_intruding_body_momentum = rep_intruding_body_velocity * intruding_body->get_total_mass();
+	rep_intruding_body_angular_momentum = rep_intruding_body_angular_velocity * intruding_body->get_total_inertia();
+
+	rep_defending_body_center = defending_body->get_position();
+	rep_defending_body_velocity = defending_body->get_velocity();
+	rep_defending_body_angular_velocity = defending_body->get_angular_velocity();
+	rep_defending_body_momentum = rep_defending_body_velocity * defending_body->get_total_mass();
+	rep_defending_body_angular_momentum = rep_defending_body_angular_velocity * defending_body->get_total_inertia();
+
+	rep_velocity_differential = { 0, 0 };
+	rep_restitution_coefficient = 0;
+
+	collision_visualizer_generate_data();
+#endif
+
+#ifdef POLYPHYSICS_SHOULD_STEP_ON_COLLISION
+	HALT = true;
+#endif
+
+	defending_body->apply_impulse_force(target_copy.impact_point, -impulse);
+	intruding_body->apply_impulse_force(target_copy.impact_point, impulse);
+
+	// This code is 1000% safe and could never backfire catastrophically
+	// The above is a joke, REMOVE THE EPSILON AND NORMAL AS SOON AS THE DISPLACER IS DONE!
+	defending_body->set_global_position(defending_body->get_global_position() - MAXQ_REAL_T_ARBITRARY_EPSILON * impact_normal);
+	intruding_body->set_global_position(intruding_body->get_global_position() + MAXQ_REAL_T_ARBITRARY_EPSILON * impact_normal);
+
+	defending_body->solver_invalidate_collision_pair_vec();
+	intruding_body->solver_invalidate_collision_pair_vec();
+
+	// TODO!!!
+	print_error("Aren't you forgetting something? TODO!!!");
+	//defending_body->solver_prepare_for_step();
+	//intruding_body->solver_prepare_for_step();
 }
-
-//target.toi = target.initial_toi + result.param_t * (get_physics_process_delta_time() - target.initial_toi);
-target.toi = result.param_t * get_physics_process_delta_time();
-target.impact_point = Vector2(result.intersect_point.x, result.intersect_point.y);
-target.impact_normal = Vector2(result.collision_normal.x, result.collision_normal.y);
-*/

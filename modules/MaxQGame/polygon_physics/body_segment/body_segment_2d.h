@@ -17,6 +17,9 @@ protected:
 	PhysicsEntity2D *entity = nullptr;
 	int ID = 0;
 
+	// The coefficient of restitution is (will be) calculated as (bouncyness1 + bouncyness2) / 2
+	real_t bouncyness = 0.01;
+
 	Vector2 center_of_mass = { 0, 0 };
 	real_t mass = 1;
 	real_t area = 0;
@@ -42,11 +45,13 @@ public:
 	real_t get_mass();
 	real_t get_area();
 
+	real_t get_bouncyness();
+	void set_bouncyness(real_t new_value);
+
 	Vector2 get_center_of_mass();
 
-	bool get_intersect_results_local(Vector2 line1_point1, Vector2 line1_point2, Vector2 line1_offset, Vector<Vector2> *results);
-
-	// These are meant to only be called by the physics entity during the physics tick
+	/*
+	// These are meant to only be called by the physics entity during the physics tick. Currpos also gets called by PhysicsEntity2D::which_segment_contains_point
 	// 
 	// Tries to get the current position. Will generate one and save it if it hasn't been generated yet.
 	Vector<Vector2> entity_get_global_currpos();
@@ -56,12 +61,5 @@ public:
 	Vector<Vector2> entity_get_global_nextpos();
 
 	void entity_clear_position_data();
-
-	/*
-	struct SegmentAreaComparator {
-		bool operator()(const PhysicsSegment2D *p_left, const PhysicsSegment2D *p_right) const {
-			return p_left->area < p_right->area;
-		}
-	};*/
-
+	*/
 };

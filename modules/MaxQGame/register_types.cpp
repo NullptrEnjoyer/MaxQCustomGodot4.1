@@ -43,7 +43,8 @@ void initialize_MaxQGame_module(ModuleInitializationLevel p_level) {
 	/* polygon physics */
 
 	GDREGISTER_CLASS(LinePlaneIntersectResult3D);
-	GDREGISTER_VIRTUAL_CLASS(PolygonPhysicsSystem2D);
+	GDREGISTER_CLASS(VectorVectorIntersectResult2D);
+	GDREGISTER_VIRTUAL_CLASS(PolygonPhysicsSystem2D); // The virtual part makes it unselectable in editor, as it should be
 	GDREGISTER_CLASS(PhysicsEntity2D);
 	GDREGISTER_CLASS(IndependentPhysicsSolver2D);
 	GDREGISTER_CLASS(PhysicsSegment2D);

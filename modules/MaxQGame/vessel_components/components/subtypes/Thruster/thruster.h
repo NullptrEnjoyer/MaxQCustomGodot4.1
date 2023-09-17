@@ -42,7 +42,7 @@ public:
 
 	bool main_engine = false;
 
-	bool autodetermine_direction = true; // TODO
+	bool autodetermine_direction = true;
 
 	bool move_front = false;
 	bool move_back = false;

@@ -50,7 +50,14 @@ void Thruster::apply_thrust() {
 	if (apply_thrust_next_tick && releveant_body != nullptr) {
 		releveant_body->queue_central_force(precomp_force);
 		releveant_body->queue_torque(precomp_torque);
+
 		apply_thrust_next_tick = false;
+
+		//releveant_body->apply_force(get_global_position(),
+		//		Vector2(sin(get_global_rotation()) * power_real, -cos(get_global_rotation()) * power_real));
+
+		//releveant_body->apply_impulse_force(get_global_position(),
+		//		Vector2(sin(get_global_rotation()) * power_real, -cos(get_global_rotation()) * power_real) * get_physics_process_delta_time());
 
 		sprite->set_visible(true);
 		return;
