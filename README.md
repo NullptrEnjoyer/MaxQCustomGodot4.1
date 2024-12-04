@@ -1,3 +1,6 @@
+# Notice:
+Super old version, be careful if using stuff.
+
 # CustomGodot4.1.0
  The custom version of godot required to work on MaxQ.
  First, follow build instructions: https://docs.godotengine.org/en/stable/contributing/development/compiling/index.html (Make sure you have 4.1), and compile for visual studio.
